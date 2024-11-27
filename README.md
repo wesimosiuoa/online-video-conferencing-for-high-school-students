@@ -32,6 +32,18 @@ This repository contains a Django application for managing a video chat platform
 
 ---
 
+##Installation
+###Clone the repository:
+git clone https://github.com/your-username/your-repo.git
+###Install dependencies:
+pip install -r requirements.txt
+###Configure your .env file:
+APP_ID=your-agora-app-id
+APP_CERTIFICATE=your-agora-app-certificate
+###Run migrations:
+python manage.py migrate
+###Start the server:
+python manage.py runserver 
 ## Code Overview
 
 ### Token Generation
@@ -115,16 +127,6 @@ def add_post(request):
     )
     serializer = PostSerializer(post, many=False)
     return Response(serializer.data)
-##Installation
-###Clone the repository:
-git clone https://github.com/your-username/your-repo.git
-###Install dependencies:
-pip install -r requirements.txt
-###Configure your .env file:
-APP_ID=your-agora-app-id
-APP_CERTIFICATE=your-agora-app-certificate
-###Run migrations:
-python manage.py migrate
-###Start the server:
-python manage.py runserver
+---
+
 
