@@ -53,3 +53,78 @@ def getToken(request):
         appId, appCertificate, channelName, uid, role, privilegeExpiredTs
     )
     return JsonResponse({'token': token, 'uid': uid}, safe=False)
+
+from django.contrib.auth import authenticate, login as auth_login, logout
+
+@csrf_exempt
+def login(request):
+    if request.method == 'POST':
+        username = request.POST.get('email')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user:
+            auth_login(request, user)
+            request.session['username'] = username
+            messages.success(request, 'Login successful')
+            return redirect('home')
+        else:
+            messages.error(request, 'Invalid login details')
+            return redirect('welcome')
+    return render(request, 'base/welcome.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
+@csrf_exempt
+def create_notification(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        sender = data.get('sender')
+        body = data.get('body')
+        Notifications.objects.create(sender=sender, body=body)
+        return JsonResponse({'status': 'Notification created successfully'}, status=201)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+@csrf_exempt
+def createUser(request):
+    try:
+        data = json.loads(request.body)
+        member, created = RoomMember.objects.get_or_create(
+            name=data['name'], uid=data['UID'], room_name=data['room_name']
+        )
+        return JsonResponse({'name': data['name']}, safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+def deleteMember(request):
+    data = json.loads(request.body)
+    member = RoomMember.objects.get(
+        name=data['name'], uid=data['uid'], room_name=data['room_name']
+    )
+    member.delete()
+    return JsonResponse('Member was deleted', safe=False)
+@api_view(['POST'])
+def add_post(request):
+    data = request.data
+    post = Post.objects.create(
+        sender=request.session['username'], body=data['body']
+    )
+    Notifications.objects.create(
+        sender=request.session['username'],
+        body=f'New message from {request.session["username"]} in group chat',
+    )
+    serializer = PostSerializer(post, many=False)
+    return Response(serializer.data)
+##Installation
+###Clone the repository:
+git clone https://github.com/your-username/your-repo.git
+###Install dependencies:
+pip install -r requirements.txt
+###Configure your .env file:
+APP_ID=your-agora-app-id
+APP_CERTIFICATE=your-agora-app-certificate
+###Run migrations:
+python manage.py migrate
+###Start the server:
+python manage.py runserver
+
